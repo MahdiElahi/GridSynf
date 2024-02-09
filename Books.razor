@@ -82,20 +82,17 @@
 
      protected override async Task OnInitializedAsync()
   {
-
-      ScrambleStatus = await scrambleService.GetStatus();
-      ScrambleStatus.Insert(0, "All");
-      SelectedStatus = ScrambleStatus.First();
-
-    
-        // !!!!!  !!!! !!!!!  !!!! !!!!!  !!!!!!!!!  !!!!!!!!!  !!!!
-        //When I Remove These Code Is Ok And After Edit It's Worked 
-      
-    var countries = await countryService.GetAllAsync() as List<CountryViewModel>;
+      var countries = await countryService.GetAllAsync() as List<CountryViewModel>;
       ScrambleCountries = countries.Select(s => s.Title).ToList ();
       ScrambleCountries.Insert(0, "All");
       SelectedCountries = ScrambleCountries.First();
      
+      // !!!!!  !!!! !!!!!  !!!! !!!!!  !!!!!!!!!  !!!!!!!!!  !!!!
+      //When I Remove These Code Is Ok And After Edit It's Worked 
+
+      ScrambleStatus = await scrambleService.GetStatus();
+      ScrambleStatus.Insert(0, "All");
+      SelectedStatus = ScrambleStatus.First();
 
   }
     public async Task OnDataBound()
