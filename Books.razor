@@ -1,0 +1,133 @@
+﻿@page "/Books"
+@rendermode InteractiveServer
+
+<div class="row gy-4 mb-4">
+    <!-- Sales Overview-->
+    <div class="col-lg-12">
+        <div class="card h-100">
+            <div class="card-body ">
+                <div id="container">
+                    <div class="add-btn-card">
+                        <a href="/insert-Book" class="btn btn-primary btn-fab demo waves-effect waves-light">
+                            <span class="tf-icons mdi mdi-plus me-2"></span> Add Book
+                        </a>
+                    </div>
+                    <SfGrid @ref="Grid" TValue="BookViewModel" AllowSorting="true" AllowFiltering="true" AllowPaging=true RowHeight="50" Height="550">
+                        <SfDataManager Adaptor="Adaptors.CustomAdaptor" AdaptorInstance="@typeof(BookAdaptor)"></SfDataManager>
+                        <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.FilterBar"></GridFilterSettings>
+                        <GridSelectionSettings CheckboxOnly="true" PersistSelection="true" Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GridSelectionSettings>
+                        <GridEvents OnDataBound="OnDataBound" OnActionFailure="ActionFailureHandler" TValue="BookViewModel"></GridEvents>
+                        <GridEditSettings ShowConfirmDialog="false" ShowDeleteConfirmDialog="false" AllowDeleting="true" Mode="EditMode.Batch"></GridEditSettings>
+                        <GridPageSettings PageSize="20"></GridPageSettings>
+                        <GridColumns>
+
+                            <GridColumn Field=@nameof(BookViewModel.Id) HeaderText="Id" Visible=false IsPrimaryKey="true" Width="130"></GridColumn>
+                            <GridColumn Field=@nameof(BookViewModel.RegisterNumber) HeaderText="Register Number" TextAlign="TextAlign.Center" Width="120"></GridColumn>
+                            <GridColumn Field=@nameof(BookViewModel.Author) HeaderText="Author" Width="150" TextAlign="TextAlign.Center"></GridColumn>
+
+                            <GridColumn Field=@nameof(BookViewModel.Country.Title) HeaderText="Country" Width="150" TextAlign="TextAlign.Center">
+                                <FilterTemplate>
+                                    <SfDropDownList  @bind-Value="@SelectedCountries" Placeholder="Select Country ..." ID="Country" DataSource="@BookCountries" TValue="string" TItem="string">
+                                        <DropDownListEvents TItem="string" ValueChange="ChangeCountry" TValue="string"></DropDownListEvents>
+                                    </SfDropDownList>
+                                </FilterTemplate>
+                                <Template>
+                                    @{
+                                        var item = (context as BookViewModel);
+                                        if (item is not null)
+                                        {
+                                            <div class="loc">
+                                                <img src="/images/map.png" class="e-image" alt="@item.Country.Title"><!--!-->
+                                                <span id="locationtext">@item.Country.Title</span>
+                                            </div>
+                                        }
+
+                                    }
+                                </Template>
+                            </GridColumn>
+
+                            <GridColumn Field=@nameof(BookViewModel.Status) HeaderText="Status" Width="150" TextAlign="TextAlign.Center">
+                                <FilterTemplate>
+                                    <SfDropDownList @bind-Value="@SelectedStatus" Placeholder="Select Status ..." ID="Status"  DataSource="@BookStatus" TValue="string" TItem="string">
+                                        <DropDownListEvents TItem="string" ValueChange="ChangeStatus" TValue="string"></DropDownListEvents>
+                                        <DropDownListFieldSettings Value="text" Text="text"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                </FilterTemplate>
+                            </GridColumn>
+
+                           
+                    </SfGrid>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    public string[] pagerDropdown { get; set; } = { "25", "50" };
+
+    SfGrid<BookViewModel> Grid;
+
+    public bool IsGridEmpty = false;
+
+    public List<string> BookCountries = new List<string>();
+    public string SelectedCountries { get; set; }
+
+    public List<string> BookStatus { get; set; }
+    public string SelectedStatus { get; set; }
+
+
+     protected override async Task OnInitializedAsync()
+  {
+
+      ScrambleStatus = await scrambleService.GetStatus();
+      ScrambleStatus.Insert(0, "All");
+      SelectedStatus = ScrambleStatus.First();
+
+    
+        // !!!!!  !!!! !!!!!  !!!! !!!!!  !!!!!!!!!  !!!!!!!!!  !!!!
+        //When I Remove These Code Is Ok And After Edit It's Worked 
+      
+    var countries = await countryService.GetAllAsync() as List<CountryViewModel>;
+      ScrambleCountries = countries.Select(s => s.Title).ToList ();
+      ScrambleCountries.Insert(0, "All");
+      SelectedCountries = ScrambleCountries.First();
+     
+
+  }
+    public async Task OnDataBound()
+    {
+        await Grid.ScrollIntoViewAsync(0, 0);
+    }
+    public void ActionFailureHandler(FailureEventArgs args)
+    {
+        // Here, you can get the error details in the args.
+    }
+    public async Task ChangeCountry(ChangeEventArgs<string, string> args)
+    {
+        if (args.Value == "All")
+        {
+            await this.Grid.ClearFilteringAsync();
+        }
+        else
+        {
+            await this.Grid.FilterByColumnAsync("Title", "equal", args.Value);
+        }
+    }
+    public async Task ChangeStatus(ChangeEventArgs<string, string> args)
+    {
+        if (args.Value == "All")
+        {
+            await this.Grid.ClearFilteringAsync();
+        }
+        else
+        {
+            await this.Grid.FilterByColumnAsync("Status", "equal", args.Value);
+        }
+    }
+  
+}
+  
